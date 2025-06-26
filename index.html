@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,66 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Framingham Weather Forecast - Live</title>
     <style>
-        body {{ font-family: sans-serif; background: #f0f4f8; padding: 20px; }}
-        .container {{ max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; }}
-        .forecast-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }}
-        .day-card {{ background: #e3f2fd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        .temp-high {{ color: #e53935; font-weight: bold; }}
+        body { font-family: sans-serif; background: #f0f4f8; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        .forecast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .day-card { background: #e3f2fd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .temp-high { color: #e53935; font-weight: bold; }
+        .loading { text-align: center; color: #666; }
+        .error { color: red; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📍 Framingham Weather Forecast</h1>
         <p><strong>Last Updated:</strong> <span id="lastUpdated">Loading...</span></p>
-        <div class="forecast-grid"><!-- Forecast cards will be inserted here --></div>
+        <div class="forecast-grid" id="forecastGrid">
+            <div class="loading">Loading weather data...</div>
+        </div>
     </div>
 
     <script>
-        function updateTimestamp() {{
+        function updateTimestamp() {
             const now = new Date();
             document.getElementById('lastUpdated').textContent = now.toLocaleString();
-        }}
+        }
 
-        async function loadForecast() {{
-            const forecastGrid = document.querySelector('.forecast-grid');
+        async function loadForecast() {
+            const forecastGrid = document.getElementById('forecastGrid');
             if (!forecastGrid) return;
 
-            try {{
-                const resp = await fetch("https://corsproxy.io/?https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429&FcstType=json");
-                const data = await resp.json();
-                const periods = data.time.startPeriodName.slice(0, 5); // 5 periods
-                const temps = data.data.temperature;
-                const descriptions = data.data.text;
-                const winds = data.data.windSpeed;
-                const precipChances = data.data.pop;
+            try {
+                // First get the grid point for Framingham, MA
+                const pointResp = await fetch('https://api.weather.gov/points/42.3168,-71.4291');
+                if (!pointResp.ok) throw new Error('Failed to get grid point');
+                
+                const pointData = await pointResp.json();
+                const forecastUrl = pointData.properties.forecast;
+                
+                // Get the actual forecast
+                const forecastResp = await fetch(forecastUrl);
+                if (!forecastResp.ok) throw new Error('Failed to get forecast');
+                
+                const forecastData = await forecastResp.json();
+                const periods = forecastData.properties.periods.slice(0, 5); // First 5 periods
 
                 forecastGrid.innerHTML = '';
 
-                for (let i = 0; i < 5; i++) {{
+                periods.forEach(period => {
                     const card = document.createElement('div');
                     card.className = 'day-card';
                     card.innerHTML = `
-                        <h3>${{periods[i]}}</h3>
+                        <h3>${period.name}</h3>
                         <div class="temp-range">
-                            Temp: <span class="temp-high">${{temps[i]}}°F</span>
+                            <span class="temp-high">${period.temperature}°${period.temperatureUnit}</span>
                         </div>
-                        <p><strong>Conditions:</strong> ${{descriptions[i]}}</p>
-                        <p><strong>Wind:</strong> ${{winds[i]}}</p>
-                        <p><strong>Precipitation:</strong> ${{precipChances[i] != null ? precipChances[i] + '%' : 'N/A'}}</p>
+                        <p><strong>Conditions:</strong> ${period.shortForecast}</p>
+                        <p><strong>Wind:</strong> ${period.windSpeed} ${period.windDirection}</p>
+                        <p><strong>Details:</strong> ${period.detailedForecast}</p>
                     `;
                     forecastGrid.appendChild(card);
-                }}
+                });
 
-            }} catch (error) {{
-                console.error('Error fetching forecast JSON:', error);
-                forecastGrid.innerHTML = '<p style="color: red;">⚠️ Failed to load weather data.</p>';
-            }}
-        }}
+            } catch (error) {
+                console.error('Error fetching forecast:', error);
+                forecastGrid.innerHTML = '<div class="error">⚠️ Failed to load weather data. Please try again later.</div>';
+            }
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {{
+        document.addEventListener('DOMContentLoaded', () => {
             updateTimestamp();
             loadForecast();
-        }});
+        });
     </script>
 </body>
 </html>
