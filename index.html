@@ -31,7 +31,7 @@
             if (!forecastGrid) return;
 
             try {{
-                const resp = await fetch("https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429&FcstType=json");
+                const resp = await fetch("https://corsproxy.io/?https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429&FcstType=json");
                 const data = await resp.json();
                 const periods = data.time.startPeriodName.slice(0, 5); // 5 periods
                 const temps = data.data.temperature;
