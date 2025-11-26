@@ -1597,9 +1597,17 @@
         function copyRefreshPrompt(location) {
             let prompt;
             if (location && location.trim() !== '') {
-                prompt = `Please create a weather forecast for ${location.trim()} using the same blog-style format, charts, and design as my Framingham forecast. Pull data from the National Weather Service or other reliable sources for that location.`;
+                prompt = `Please create a weather forecast for ${location.trim()} using the same blog-style format, charts, and design as my Framingham forecast. Use only the National Weather Service as your data source, adjusting these three URL formats for the new location:
+1. Area Forecast Discussion: https://forecast.weather.gov/product.php?site=BOX&issuedby=BOX&product=AFD&format=CI&version=1&glossary=1&highlight=off
+2. Point Forecast: https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429
+3. Graphical Forecast: https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429&unit=0&lg=english&FcstType=graphical
+
+Adjust the site/issuedby codes and lat/lon coordinates for ${location.trim()}.`;
             } else {
-                prompt = "Please refresh my Framingham weather forecast with the latest data from the NWS sources.";
+                prompt = `Please refresh my Framingham weather forecast with the latest data from these three NWS sources:
+1. https://forecast.weather.gov/product.php?site=BOX&issuedby=BOX&product=AFD&format=CI&version=1&glossary=1&highlight=off
+2. https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429
+3. https://forecast.weather.gov/MapClick.php?lat=42.3168&lon=-71.429&unit=0&lg=english&FcstType=graphical`;
             }
             
             navigator.clipboard.writeText(prompt).then(() => {
