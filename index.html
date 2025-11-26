@@ -932,7 +932,7 @@
                     </div>
                     <div class="modal-body">
                         <p>Enter a location for your forecast, or leave blank for Framingham, MA:</p>
-                        <input type="text" id="locationInput" class="location-input" placeholder="e.g., Denver, CO or Paris, France" autocomplete="off" onkeypress="handleKeyPress(event)">
+                        <input type="text" id="locationInput" name="weather_loc_xyz" class="location-input" placeholder="e.g., Denver, CO or Paris, France" autocomplete="new-password" data-form-type="other" onkeypress="handleKeyPress(event)">
                         <div class="modal-buttons">
                             <button class="modal-btn secondary" onclick="closeLocationModal()">Cancel</button>
                             <button class="modal-btn primary" onclick="submitLocation()">
@@ -1631,9 +1631,16 @@ Adjust the site/issuedby codes and lat/lon coordinates for ${location.trim()}.`;
         // Modal functions
         function openLocationModal() {
             const input = document.getElementById('locationInput');
-            input.value = '';  // Clear any cached/autofill values
+            input.value = '';  // Clear immediately
             document.getElementById('modalOverlay').classList.add('show');
-            setTimeout(() => input.focus(), 100);
+            // Clear again after a delay to beat browser autofill
+            setTimeout(() => {
+                input.value = '';
+                input.focus();
+            }, 50);
+            setTimeout(() => {
+                input.value = '';
+            }, 150);
         }
         
         function closeLocationModal() {
