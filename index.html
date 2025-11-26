@@ -733,6 +733,158 @@
             color: #4ade80;
             flex-shrink: 0;
         }
+        
+        /* Location Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, #1a2a3a 0%, #0f1a24 100%);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            padding: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(74, 158, 255, 0.1);
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .modal-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            transition: color 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-body p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+        
+        .location-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .location-input:focus {
+            border-color: var(--accent-rain);
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+        }
+        
+        .location-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .modal-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .modal-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+        
+        .modal-btn.primary {
+            background: linear-gradient(135deg, var(--accent-rain) 0%, #2c7be5 100%);
+            border: none;
+            color: white;
+        }
+        
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(74, 158, 255, 0.35);
+        }
+        
+        .modal-btn svg {
+            width: 18px;
+            height: 18px;
+        }
     </style>
 </head>
 <body>
@@ -751,7 +903,7 @@
             <h1>Rain Tonight, Clearing for Thanksgiving</h1>
             <p class="subtitle">Your 3-Day Forecast for Metro West</p>
             <p class="update-time">Last updated: Tuesday, November 25, 2025 at 9:00 PM EST</p>
-            <button class="refresh-btn" onclick="copyRefreshPrompt()">
+            <button class="refresh-btn" onclick="openLocationModal()">
                 <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M23 4v6h-6"/>
                     <path d="M1 20v-6h6"/>
@@ -764,6 +916,35 @@
                     <path d="M20 6L9 17l-5-5"/>
                 </svg>
                 <span>Prompt copied! Paste it in Claude to refresh.</span>
+            </div>
+            
+            <!-- Location Modal -->
+            <div class="modal-overlay" id="modalOverlay" onclick="closeLocationModal()">
+                <div class="modal" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>Refresh Forecast</h3>
+                        <button class="modal-close" onclick="closeLocationModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Enter a location for your forecast, or leave blank for Framingham, MA:</p>
+                        <input type="text" id="locationInput" class="location-input" placeholder="e.g., Denver, CO or Paris, France" onkeypress="handleKeyPress(event)">
+                        <div class="modal-buttons">
+                            <button class="modal-btn secondary" onclick="closeLocationModal()">Cancel</button>
+                            <button class="modal-btn primary" onclick="submitLocation()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                Copy & Open Claude
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
         
@@ -1413,9 +1594,16 @@
         }
         
         // Copy refresh prompt to clipboard and launch Claude app
-        function copyRefreshPrompt() {
-            const prompt = "Please refresh my Framingham weather forecast with the latest data from the NWS sources.";
+        function copyRefreshPrompt(location) {
+            let prompt;
+            if (location && location.trim() !== '') {
+                prompt = `Please create a weather forecast for ${location.trim()} using the same blog-style format, charts, and design as my Framingham forecast. Pull data from the National Weather Service or other reliable sources for that location.`;
+            } else {
+                prompt = "Please refresh my Framingham weather forecast with the latest data from the NWS sources.";
+            }
+            
             navigator.clipboard.writeText(prompt).then(() => {
+                closeLocationModal();
                 const toast = document.getElementById('toast');
                 toast.classList.add('show');
                 setTimeout(() => {
@@ -1430,6 +1618,28 @@
                 console.error('Failed to copy: ', err);
                 alert('Prompt: ' + prompt);
             });
+        }
+        
+        // Modal functions
+        function openLocationModal() {
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('locationInput').focus();
+        }
+        
+        function closeLocationModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('locationInput').value = '';
+        }
+        
+        function submitLocation() {
+            const location = document.getElementById('locationInput').value;
+            copyRefreshPrompt(location);
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                submitLocation();
+            }
         }
     </script>
 </body>
