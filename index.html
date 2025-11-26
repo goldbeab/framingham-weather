@@ -932,7 +932,7 @@
                     </div>
                     <div class="modal-body">
                         <p>Enter a location for your forecast, or leave blank for Framingham, MA:</p>
-                        <input type="text" id="locationInput" class="location-input" placeholder="e.g., Denver, CO or Paris, France" onkeypress="handleKeyPress(event)">
+                        <input type="text" id="locationInput" class="location-input" placeholder="e.g., Denver, CO or Paris, France" autocomplete="off" onkeypress="handleKeyPress(event)">
                         <div class="modal-buttons">
                             <button class="modal-btn secondary" onclick="closeLocationModal()">Cancel</button>
                             <button class="modal-btn primary" onclick="submitLocation()">
@@ -1630,8 +1630,10 @@ Adjust the site/issuedby codes and lat/lon coordinates for ${location.trim()}.`;
         
         // Modal functions
         function openLocationModal() {
+            const input = document.getElementById('locationInput');
+            input.value = '';  // Clear any cached/autofill values
             document.getElementById('modalOverlay').classList.add('show');
-            document.getElementById('locationInput').focus();
+            setTimeout(() => input.focus(), 100);
         }
         
         function closeLocationModal() {
@@ -1640,7 +1642,8 @@ Adjust the site/issuedby codes and lat/lon coordinates for ${location.trim()}.`;
         }
         
         function submitLocation() {
-            const location = document.getElementById('locationInput').value;
+            const input = document.getElementById('locationInput');
+            const location = input.value.trim();
             copyRefreshPrompt(location);
         }
         
